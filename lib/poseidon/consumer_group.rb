@@ -355,6 +355,31 @@ class Poseidon::ConsumerGroup
     end
   end
 
+  # repair consumer if connection broken or have not-find-leader exception
+  # the step is:
+  # *reload metadata,
+  # *find out the broken consumer
+  # *renew consumer(find leader and reconnect)
+  def repair!
+    return if @pending
+
+    @pending = true
+    @mutex.synchronize do
+      @pending = nil
+      reload
+      c = nil
+      for i in (0...@consumers.size)
+           c = @consumers[i]
+           if !c.nil? && !c.available?
+              release! c.partition
+              c.close
+              @consumers[i] = Consumer.new self, c.partition, options.dup
+           end
+      end if @consumers.size > 0
+      end
+    self
+  end
+
   protected
 
     # Rebalance algorithm:
