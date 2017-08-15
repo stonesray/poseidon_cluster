@@ -361,21 +361,14 @@ class Poseidon::ConsumerGroup
   # *find out the broken consumer
   # *renew consumer(find leader and reconnect)
   def repair!
-    return if @pending
-
-    @pending = true
     @mutex.synchronize do
-      @pending = nil
       reload
       c = nil
+      #TODO simple and rough, should to modify
       for i in (0...@consumers.size)
-           c = @consumers[i]
-           if !c.nil? && !c.available?
               release! c.partition
               c.close
               @consumers[i] = Consumer.new self, c.partition, options.dup
-           end
-      end if @consumers.size > 0
       end
     self
   end
