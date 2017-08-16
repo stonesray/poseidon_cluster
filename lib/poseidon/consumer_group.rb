@@ -366,6 +366,7 @@ class Poseidon::ConsumerGroup
       c = nil
       #TODO simple and rough, should to modify
       for i in (0...@consumers.size)
+        c = @consumers[i]
         release! c.partition
         c.close
         @consumers[i] = Consumer.new self, c.partition, options.dup
